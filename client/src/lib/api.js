@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api' });
+const api = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`
+});
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('mit_token');
@@ -11,11 +13,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && !err.config.url.includes('/auth/login')) {
+    if (
+      err.response?.status === 401 &&
+      !err.config?.url?.includes('/auth/login')
+    ) {
       localStorage.removeItem('mit_token');
       localStorage.removeItem('mit_user');
-      if (!window.location.pathname.startsWith('/login')) window.location.href = '/login';
+
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
     }
+
     return Promise.reject(err);
   }
 );
